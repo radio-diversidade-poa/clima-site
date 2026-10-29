@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsão do Tempo - Rádio Diversidade Poa</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4px;
+        }
+
+        /* Container Principal idêntico ao widget de referência */
+        .weather-box {
+            background-color: #7427a9;
+            color: #ffffff;
+            border: 2px solid #f5a623;
+            border-radius: 10px;
+            padding: 16px 20px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+        }
+
+        .city-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        /* Seção Superior limpa e compacta */
+        .current-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .current-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 40px;
+        }
+
+        .current-temp {
+            font-size: 34px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .weather-icon-svg {
+            width: 38px;
+            height: 38px;
+            filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .spin-sun {
+            transform-origin: center;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .float-cloud {
+            animation: float 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-2px); }
+        }
+
+        .current-right {
+            text-align: right;
+            margin-right: 40px;
+        }
+
+        .current-desc {
+            font-size: 15px;
+            font-weight: bold;
+            color: #FFC107;
+            margin-bottom: 3px;
+        }
+
+        /* Estatísticas de vento, umidade e pressão alinhadas iguaizinhas ao de referência */
+        .current-stats {
+            font-size: 15px;
+            color: #ffffff;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            opacity: 0.95;
+        }
+
+        /* Previsão 7 Dias em Linha Horizontal Perfeita */
+        .forecast-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+        }
+
+        .forecast-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 54px;
+            padding: 6px 2px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+        }
+
+        .forecast-day-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #FFC107;
+            margin-bottom: 3px;
+        }
+
+        .forecast-icon-small {
+            width: 26px;
+            height: 26px;
+            margin: 2px 0;
+        }
+
+        .forecast-temps-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 2px;
+            gap: 1px;
+        }
+
+        .f-max {
+            color: #ffffff;
+        }
+
+        .f-min {
+            color: #d2d2d2;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="weather-box">
+        <div class="city-title">Porto Alegre-RS</div>
+
+        <!-- Clima Atual -->
+        <div class="current-top">
+            <div class="current-left">
+                <span class="current-temp" id="curr-temp">--°C</span>
+                <span id="curr-icon-wrap"></span>
+            </div>
+            <div class="current-right">
+                <div class="current-desc" id="curr-desc">Carregando...</div>
+                <div class="current-stats">
+                    <span id="curr-wind">💨 -- m/s</span>
+                    <span id="curr-humidity">💧 --%</span>
+                    <span id="curr-pressure">📊 -- mmHg</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Previsão 7 Dias Horizontal -->
+        <div class="forecast-container" id="forecast-row">
+            <!-- Preenchido via JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        function getStyledSVG(code, isNight = false) {
+            if (code === 0 && !isNight) {
+                return `<svg class="weather-icon-svg spin-sun" viewBox="0 0 64 64">
+                    <circle cx="32" cy="32" r="14" fill="#FFC107"/>
+                    <g stroke="#FFC107" stroke-width="3.5" stroke-linecap="round">
+                        <line x1="32" y1="4" x2="32" y2="10"/>
+                        <line x1="32" y1="54" x2="32" y2="60"/>
+                        <line x1="4" y1="32" x2="10" y2="32"/>
+                        <line x1="54" y1="32" x2="60" y2="32"/>
+                        <line x1="12" y1="12" x2="16" y2="16"/>
+                        <line x1="48" y1="48" x2="52" y2="52"/>
+                        <line x1="12" y1="52" x2="16" y2="48"/>
+                        <line x1="48" y1="16" x2="52" y2="12"/>
+                    </g>
+                </svg>`;
+            }
+            if (code === 0 && isNight) {
+                return `<svg class="weather-icon-svg" viewBox="0 0 64 64">
+                    <path d="M42 12A20 20 0 1 0 52 42 22 22 0 1 1 42 12Z" fill="#FFC107"/>
+                </svg>`;
+            }
+            if ((code === 1 || code === 2) && !isNight) {
+                return `<svg class="weather-icon-svg float-cloud" viewBox="0 0 64 64">
+                    <circle cx="24" cy="22" r="10" fill="#FFC107"/>
+                    <path d="M20 48h24a12 12 0 0 0 0-24 12.5 12.5 0 0 0-11-6 15 15 0 0 0-14 10 10 10 0 0 0 1 20z" fill="#FFFFFF"/>
+                </svg>`;
+            }
+            if (code >= 51 && code <= 67) {
+                return `<svg class="weather-icon-svg float-cloud" viewBox="0 0 64 64">
+                    <path d="M18 38h24a10 10 0 0 0 0-20 10.5 10.5 0 0 0-9-5 13 13 0 0 0-12 8 8 8 0 0 0 0 17z" fill="#B0BEC5"/>
+                    <g stroke="#29B6F6" stroke-width="3" stroke-linecap="round">
+                        <line x1="22" y1="44" x2="18" y2="52"/>
+                        <line x1="32" y1="44" x2="28" y2="52"/>
+                        <line x1="42" y1="44" x2="38" y2="52"/>
+                    </g>
+                </svg>`;
+            }
+            if (code >= 95) {
+                return `<svg class="weather-icon-svg float-cloud" viewBox="0 0 64 64">
+                    <path d="M18 34h24a10 10 0 0 0 0-20 10.5 10.5 0 0 0-9-5 13 13 0 0 0-12 8 8 8 0 0 0 0 17z" fill="#546E7A"/>
+                    <polygon points="30,36 24,46 30,46 26,56 36,44 30,44" fill="#FFEB3B"/>
+                </svg>`;
+            }
+            return `<svg class="weather-icon-svg float-cloud" viewBox="0 0 64 64">
+                <path d="M16 44h28a12 12 0 0 0 0-24 13 13 0 0 0-12-7 15 15 0 0 0-14 10 10 10 0 0 0 2 21z" fill="#FFFFFF"/>
+            </svg>`;
+        }
+
+        async function loadWeather() {
+            try {
+                const lat = -30.0331;
+                const lon = -51.23;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America%2FSao_Paulo`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const tempCurrent = Math.round(data.current.temperature_2m);
+                const wind = data.current.wind_speed_10m;
+                const humidity = data.current.relative_humidity_2m;
+                const pressure = Math.round(data.current.surface_pressure * 0.75006);
+                const wcode = data.current.weather_code;
+
+                const currentHour = new Date().getHours();
+                const isNight = currentHour < 6 || currentHour >= 18;
+                
+                document.getElementById('curr-temp').innerText = tempCurrent + '°C';
+                document.getElementById('curr-desc').innerText = getWeatherText(wcode);
+                document.getElementById('curr-icon-wrap').innerHTML = getStyledSVG(wcode, isNight);
+                document.getElementById('curr-wind').innerText = '💨 ' + wind + ' m/s';
+                document.getElementById('curr-humidity').innerText = '💧 ' + humidity + '%';
+                document.getElementById('curr-pressure').innerText = '📊 ' + pressure + ' mmHg';
+
+                const daily = data.daily;
+                const rowEl = document.getElementById('forecast-row');
+                rowEl.innerHTML = '';
+                const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+                for (let i = 0; i < 7; i++) {
+                    const dateObj = new Date(daily.time[i] + 'T00:00:00');
+                    let nomeDia = diasSemana[dateObj.getDay()];
+                    if (i === 0) nomeDia = 'Hoje';
+
+                    const max = Math.round(daily.temperature_2m_max[i]);
+                    const min = Math.round(daily.temperature_2m_min[i]);
+                    const code = daily.weather_code[i];
+
+                    const card = document.createElement('div');
+                    card.className = 'forecast-card';
+                    card.innerHTML = `
+                        <span class="forecast-day-name">${nomeDia}</span>
+                        ${getStyledSVG(code, false).replace('weather-icon-svg', 'forecast-icon-small')}
+                        <div class="forecast-temps-box">
+                            <span class="f-max">${max}°</span>
+                            <span class="f-min">${min}°</span>
+                        </div>
+                    `;
+                    rowEl.appendChild(card);
+                }
+            } catch (err) {
+                document.getElementById('curr-desc').innerText = "Erro ao carregar";
+            }
+        }
+
+        function getWeatherText(code) {
+            if (code === 0) return 'Céu limpo';
+            if (code === 1 || code === 2) return 'Parcialmente nublado';
+            if (code === 3) return 'Nublado';
+            if (code >= 51 && code <= 67) return 'Chuva';
+            if (code >= 71 && code <= 77) return 'Neve';
+            if (code >= 80 && code <= 82) return 'Pancadas de chuva';
+            if (code >= 95) return 'Tempestade';
+            return 'Instável';
+        }
+
+        loadWeather();
+    </script>
+</body>
+</html>
